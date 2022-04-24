@@ -36,7 +36,7 @@ impl Query {
         }
     }
 
-    pub fn append_params(&self, query_url: &str) -> String {
+    pub fn append_as_params(&self, query_url: &str) -> String {
         format!("{}?{}", query_url, self)
     }
 }
@@ -135,7 +135,7 @@ pub struct QueryResponse {
     #[serde(rename = "hasZ")]
     has_z: Option<bool>,
     #[serde(rename = "hasM")]
-    hax_m: Option<bool>,
+    has_m: Option<bool>,
     fields: Vec<Field>,
     features: Vec<Feature>,
 }

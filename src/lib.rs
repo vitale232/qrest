@@ -35,6 +35,10 @@ impl Query {
             out_fields: None,
         }
     }
+
+    pub fn append_params(&self, query_url: &str) -> String {
+        format!("{}?{}", query_url, self)
+    }
 }
 
 impl Display for Query {

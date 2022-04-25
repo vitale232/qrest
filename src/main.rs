@@ -14,15 +14,15 @@ async fn main() -> Result<(), Error> {
         process::exit(1);
     });
 
-    if !query.return_count_only {
-        let response = feature_query_get(query).await?;
+    if query.return_count_only {
+        let response = count_query_get(query).await?;
         let result = serde_json::to_string(&response).unwrap_or_else(|err| {
             eprintln!("Could not parse the server response!:\n{}", err);
             process::exit(1);
         });
         println!("{:#?}", result);
     } else {
-        let response = count_query_get(query).await?;
+        let response = feature_query_get(query).await?;
         let result = serde_json::to_string(&response).unwrap_or_else(|err| {
             eprintln!("Could not parse the server response!:\n{}", err);
             process::exit(1);

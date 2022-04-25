@@ -1,3 +1,5 @@
+pub mod cli;
+
 use std::fmt::{self, Display};
 
 use serde::{Deserialize, Serialize};
@@ -14,41 +16,28 @@ pub enum ResponseFormat {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Query {
-    f: ResponseFormat,
+    #[serde(skip_serializing)]
+    query_url: String,
+    pub f: ResponseFormat,
     #[serde(rename = "where")]
-    where_clause: String,
+    pub where_clause: String,
     #[serde(rename = "returnGeometry")]
-    return_geometry: bool,
+    pub return_geometry: bool,
     #[serde(rename = "returnCountOnly")]
-    return_count_only: bool,
+    pub return_count_only: bool,
     #[serde(rename = "outFields")]
-    out_fields: String,
-}
-
-impl Query {
-    pub fn new() -> QueryBuilder {
-        QueryBuilder {
-            response_format: None,
-            where_clause: None,
-            return_geometry: None,
-            return_count_only: None,
-            out_fields: None,
-        }
-    }
-
-    pub fn append_as_params(&self, query_url: &str) -> String {
-        format!("{}?{}", query_url, self)
-    }
+    pub out_fields: String,
 }
 
 impl Display for Query {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let q = serde_urlencoded::to_string(self).unwrap_or_default();
-        write!(f, "{}", q)
+        write!(f, "{}?{}", self.query_url, q)
     }
 }
 
 pub struct QueryBuilder {
+    query_url: String,
     response_format: Option<ResponseFormat>,
     where_clause: Option<String>,
     return_geometry: Option<bool>,
@@ -57,6 +46,17 @@ pub struct QueryBuilder {
 }
 
 impl QueryBuilder {
+    pub fn new(query_url: &str) -> Self {
+        Self {
+            query_url: query_url.to_string(),
+            response_format: None,
+            where_clause: None,
+            return_geometry: None,
+            return_count_only: None,
+            out_fields: None,
+        }
+    }
+
     pub fn response_format(&mut self, format: ResponseFormat) -> &mut Self {
         self.response_format = Some(format);
         self
@@ -84,8 +84,12 @@ impl QueryBuilder {
 
     pub fn build(&mut self) -> Query {
         Query {
+            query_url: self.query_url.clone(),
             f: self.response_format.clone().unwrap_or(ResponseFormat::Json),
-            where_clause: self.where_clause.clone().unwrap_or("1=1".to_string()),
+            where_clause: self
+                .where_clause
+                .clone()
+                .unwrap_or_else(|| "1=1".to_string()),
             return_geometry: self.return_geometry.unwrap_or_default(),
             return_count_only: self.return_count_only.unwrap_or_default(),
             out_fields: self

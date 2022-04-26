@@ -9,16 +9,25 @@ use crate::{CountQueryResponse, Query, QueryBuilder, QueryResponse, ResponseForm
 struct Cli {
     query_url: String,
 
-    #[clap(short, long, value_name = "where")]
+    #[clap(
+        short,
+        long,
+        value_name = "where",
+        help = "Optional where clause. Defaults to `1=1`"
+    )]
     _where: Option<String>,
 
-    #[clap(short, long)]
+    #[clap(
+        short,
+        long,
+        help = "Optional comma-separated list of fields to return"
+    )]
     out_fields: Option<String>,
 
-    #[clap(short, long)]
+    #[clap(short, long, help = "Optional flag, return the count of features")]
     count: bool,
 
-    #[clap(short, long)]
+    #[clap(short, long, help = "Optional flag, return the geometry")]
     geometry: bool,
 
     #[clap(arg_enum, short, long, default_value_t = ResponseFormat::Json)]

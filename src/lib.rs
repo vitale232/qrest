@@ -2,16 +2,16 @@ pub mod cli;
 
 use std::fmt::{self, Display};
 
+use clap::ArgEnum;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 // Query Types
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ArgEnum)]
 pub enum ResponseFormat {
     Html,
     Json,
-    GeoJson, // TODO: leverage georust here
-             // Pbf, // TODO: research
+    Geojson,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

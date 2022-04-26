@@ -1,6 +1,6 @@
 use std::process;
 
-use qrest::cli::{self, count_query_get, feature_query_get};
+use qrest::cli::{self, fetch_query};
 
 use reqwest::Error;
 
@@ -14,21 +14,14 @@ async fn main() -> Result<(), Error> {
         process::exit(1);
     });
 
-    if query.return_count_only {
-        let response = count_query_get(query).await?;
-        let result = serde_json::to_string_pretty(&response).unwrap_or_else(|err| {
-            eprintln!("Could not parse the server response!:\n{}", err);
-            process::exit(1);
-        });
-        println!("{}", result);
-    } else {
-        let response = feature_query_get(query).await?;
-        let result = serde_json::to_string_pretty(&response).unwrap_or_else(|err| {
-            eprintln!("Could not parse the server response!:\n{}", err);
-            process::exit(1);
-        });
-        println!("{}", result);
-    }
+    let response = fetch_query(query).await?;
+
+    let output = serde_json::to_string_pretty(&response).unwrap_or_else(|err| {
+        eprintln!("Could not parse the server response!:\n{}", err);
+        process::exit(1);
+    });
+
+    println!("{}", output);
 
     Ok(())
 }

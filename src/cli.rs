@@ -1,47 +1,52 @@
-use clap::{arg, Command};
+use clap::Parser;
 use reqwest::{Client, Error};
 use std::io::ErrorKind;
 
-use crate::{CountQueryResponse, Query, QueryBuilder, QueryResponse};
+use crate::{CountQueryResponse, Query, QueryBuilder, QueryResponse, ResponseFormat};
+
+#[derive(Parser)]
+#[clap(author, version, about, long_about = None)]
+struct Cli {
+    query_url: String,
+
+    #[clap(short, long, value_name = "where")]
+    _where: Option<String>,
+
+    #[clap(short, long)]
+    out_fields: Option<String>,
+
+    #[clap(short, long)]
+    count: bool,
+
+    #[clap(short, long)]
+    geometry: bool,
+
+    #[clap(arg_enum, short, long, default_value_t = ResponseFormat::Json)]
+    format: ResponseFormat,
+}
 
 pub fn run() -> Result<Query, Box<dyn std::error::Error>> {
-    let matches = Command::new("qrest")
-        .version("0.1.0")
-        .author("Andrew Vitale <vitale232@gmail.com>")
-        .about("Query an ArcGIS REST FeatureService Layer")
-        .arg(arg!([query_url] "The Service URL's /query endpoint").required(true))
-        .arg(arg!(-w --where <CLAUSE> ... "Where clause to use in query").required(false))
-        .arg(arg!(-g - -geometry "Return geometry with response").required(false))
-        .arg(arg!(-c - -count "Return Count only, in lieu of features").required(false))
-        .arg(arg!(-o --fields <FIELDS> "Out fields, the list of fields to be returned by the server (comma separated)").required(false))
-        .get_matches();
+    let cli = Cli::parse();
 
-    let url = matches
-        .value_of("query_url")
-        .ok_or("The Service URL is required")?;
-
-    if !url.ends_with("/query") & !url.ends_with("/query/") {
+    // Validate the URL
+    if !cli.query_url.ends_with("/query") & !cli.query_url.ends_with("/query/") {
         return Err(Box::new(std::io::Error::new(
             ErrorKind::InvalidInput,
             "The URL does not appear to be a query endpoint!",
         )));
     }
 
-    let mut qb = QueryBuilder::new(url);
+    // Build the Query
+    let mut qb = QueryBuilder::new(&cli.query_url);
+    qb.response_format(cli.format);
+    qb.return_count_only(cli.count);
+    qb.return_geometry(cli.geometry);
 
-    if let Some(wc) = matches.value_of("where") {
-        qb.where_clause(wc);
+    if let Some(wc) = cli._where {
+        qb.where_clause(&wc);
     }
 
-    if matches.is_present("geometry") {
-        qb.return_geometry(true);
-    }
-
-    if matches.is_present("count") {
-        qb.return_count_only(true);
-    }
-
-    if let Some(out_fields) = matches.value_of("fields") {
+    if let Some(out_fields) = cli.out_fields {
         let fields: Vec<&str> = out_fields.split(',').collect();
         qb.out_fields(fields);
     }
@@ -67,4 +72,14 @@ pub async fn count_query_get(query: Query) -> Result<CountQueryResponse, Error> 
         .json()
         .await?;
     Ok(count)
+}
+
+pub async fn fetch_query(query: Query) -> Result<serde_json::Value, Error> {
+    let res = Client::new()
+        .get(query.to_string())
+        .send()
+        .await?
+        .json()
+        .await?;
+    Ok(res)
 }

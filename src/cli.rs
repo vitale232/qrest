@@ -83,3 +83,13 @@ pub async fn fetch_query(query: Query) -> Result<serde_json::Value, Error> {
         .await?;
     Ok(res)
 }
+
+pub async fn fetch_html_query(query: Query) -> Result<String, Error> {
+    let res = Client::new()
+        .get(query.to_string())
+        .send()
+        .await?
+        .text()
+        .await?;
+    Ok(res)
+}

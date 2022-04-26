@@ -7,10 +7,11 @@ Said another way, Query REST, aka qrest. Pronounced crest ⛰️
 Usage example:
 
 ```shell
-$ > ./qrest https://gisservices.its.ny.gov/arcgis/rest/services/NYS_Place_Points/FeatureServer/0/query --where "County = 'Essex' AND PlaceType = 'Incorporated Town'" --count
-{
-  "count": 18
-}
+./qrest https://gisservices.its.ny.gov/arcgis/rest/services/NYS_Place_Points/FeatureServer/0/query --where "County = 'Essex' AND PlaceType = 'Incorporated Town'" --count
+# Outputs:
+# {
+#   "count": 18
+# }
 ```
 
 ## Compiling
